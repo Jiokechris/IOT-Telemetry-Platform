@@ -4,7 +4,7 @@ provider "aws" {
 
 # 1. The S3 Bucket to hold the state file
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "iot-telemetry-tf-state-YOUR-UNIQUE-NAME" # <-- Change YOUR-UNIQUE-NAME
+  bucket        = "iot-telemetry-tf-state-devops-jioke-2026" # <-- Change YOUR-UNIQUE-NAME
   force_destroy = true # Allows clean deletion later if needed
 }
 
@@ -36,5 +36,15 @@ resource "aws_dynamodb_table" "terraform_locks" {
   attribute {
     name = "LockID"
     type = "S"
+  }
+}
+
+# 3. Permanent ECR Repository for the Ingestor App
+resource "aws_ecr_repository" "iot_ingestor" {
+  name                 = "iot-telemetry-ingestor"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true # Good practice: Scans your containers for vulnerabilities
   }
 }
