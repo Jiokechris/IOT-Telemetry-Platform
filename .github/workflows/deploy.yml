@@ -32,7 +32,7 @@ jobs:
     # Step 4: Build and Tag the Docker Container
     # We tag the container image with the short Git Commit SHA to track changes explicitly
     - name: Build, Tag, and Push Image to ECR
-    working-directory: ./modules/app_tier
+      working-directory: ./modules/app_tier
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: iot-telemetry-ingestor
