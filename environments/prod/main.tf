@@ -5,11 +5,24 @@ terraform {
       version = "~> 5.0"
     }
   }
+  backend "s3" {
+    # 1. Put your ACTUAL bootstrap bucket name here:
+    bucket         = "iot-telemetry-tf-state-devops-jioke-2026" 
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    
+    # 2. Fix the warning by replacing dynamodb_table with the new native lock parameter:
+    use_lockfile   = true
+    encrypt        = true
+  }
 }
+
+
 
 provider "aws" {
   region = "us-east-1"
 }
+
 
 # Instantiate our custom network module
 module "production_network" {
