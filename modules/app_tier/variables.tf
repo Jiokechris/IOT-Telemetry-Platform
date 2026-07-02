@@ -1,6 +1,6 @@
 variable "environment" {
   type        = string
-  description = "The deployment stage (e.g., prod, staging)"
+  description = "The deployment stage"
 }
 
 variable "vpc_id" {
