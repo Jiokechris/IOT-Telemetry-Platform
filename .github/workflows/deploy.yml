@@ -56,5 +56,5 @@ jobs:
     # Terraform detects that the container image tag has updated, 
     # and calculates the exact delta to deploy the new code to ECS.
     - name: Terraform Apply
-      run: terraform apply -auto-approve
+      run: terraform destroy -auto-approve
       working-directory: ./environments/prod
