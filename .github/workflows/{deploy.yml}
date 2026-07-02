@@ -1,0 +1,57 @@
+name: IoT Platform Continuous Deployment
+
+# Trigger the pipeline automatically on pushes to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Step 1: Clone the code repository into the GitHub runner
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Step 2: Authenticate securely with AWS using OpenID Connect (OIDC)
+    # This avoids hardcoding permanent passwords or keys in our repo
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # Step 3: Log into our private Container Registry
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    # Step 4: Build and Tag the Docker Container
+    # We tag the container image with the short Git Commit SHA to track changes explicitly
+    - name: Build, Tag, and Push Image to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: iot-telemetry-ingestor
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    # Step 5: Initialize Terraform headlessly inside the pipeline environment
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./environments/prod
+
+    # Step 6: Apply the change declaratively
+    # Terraform detects that the container image tag has updated, 
+    # and calculates the exact delta to deploy the new code to ECS.
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: ./environments/prod
