@@ -11,8 +11,8 @@ terraform {
     key            = "prod/terraform.tfstate"
     region         = "us-east-1"
     
-    # 2. Fix the warning by replacing dynamodb_table with the new native lock parameter:
-    use_lockfile   = true
+    # Switch back to the classic DynamoDB lock table:
+    dynamodb_table = "iot-telemetry-tf-locks"
     encrypt        = true
   }
 }
